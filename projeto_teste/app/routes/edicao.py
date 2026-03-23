@@ -8,15 +8,15 @@ from app.utils.decorators import role_required
 edicao_bp = Blueprint("edicao", __name__)
 
 @edicao_bp.route('/selecionar_edicao/<modo>')
-@role_required('assent', 'admin', 'jur')
+@role_required('assent', 'admin', 'jur', 'assent_gestor','jur_gestor')
 def selecionar_edicao(modo):
 
     role = session.get('role')
 
-    if modo == 'assent' and role not in ['assent', 'admin']:
+    if modo == 'assent' and role not in ['assent', 'admin', 'assent_gestor']:
         abort(403)
 
-    if modo == 'jur' and role not in ['jur', 'admin']:
+    if modo == 'jur' and role not in ['jur', 'admin','jur_gestor']:
         abort(403)
 
     try:
@@ -35,7 +35,7 @@ def selecionar_edicao(modo):
     return render_template('selecionar_edicao.html', dados=dados, modo=modo)
 
 @edicao_bp.route('/editar/<int:empresa_id>', methods=['GET', 'POST'])
-@role_required('assent', 'admin')
+@role_required('assent', 'admin', 'assent_gestor')
 def editar(empresa_id):
     try:
         with get_db() as db:
@@ -53,7 +53,7 @@ def editar(empresa_id):
                     ]
 
                     campos = COLUNAS[:-4] # Pega as chaves fixas
-                    set_clause = ', '.join([f"`{col}` = %s" for col in campos])
+                    set_clause = ', '.join([f"{col} = %s" for col in campos])
                     query = f"UPDATE municipal_lots SET {set_clause} WHERE id = %s"
                     valores = []
                     alteracoes = []
@@ -110,7 +110,7 @@ def editar(empresa_id):
         return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
     
 @edicao_bp.route('/editar_jur/<int:empresa_id>', methods=['GET', 'POST'])
-@role_required('jur', 'admin')
+@role_required('jur', 'admin' 'assent_gestor','jur_gestor')
 def editar_jur(empresa_id):
     try:
         with get_db() as db:
@@ -135,6 +135,9 @@ def editar_jur(empresa_id):
                     status = request.form.getlist("status[]")
                     assuntos = request.form.getlist("assunto_judicial[]")
                     valores = request.form.getlist("valor_da_causa[]")
+                    tipos = request.form.getlist('tipo_processo[]')
+                    recursos = request.form.getlist('recurso_acionado[]')
+                    tipos_recurso = request.form.getlist('tipo_recurso[]')
 
                     # Remove processos antigos
                     cursor.execute("DELETE FROM processos WHERE empresa_id = %s", (empresa_id,))
@@ -153,15 +156,18 @@ def editar_jur(empresa_id):
 
                         cursor.execute("""
                         INSERT INTO processos
-                        (empresa_id, numero_processo, status, assunto_judicial, valor_da_causa)
-                        VALUES (%s,%s,%s,%s,%s)
+                        (empresa_id, numero_processo, status, assunto_judicial, valor_da_causa, tipo_processo, recurso_acionado, tipo_recurso)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
                         """,
                         (
                             empresa_id,
                             numero,
                             status_val,
                             assunto,
-                            valor if valor else None
+                            valor if valor else None,
+                            tipos[i] if i < len(tipos) else None,
+                            1 if i < len(recursos) else 0,
+                            tipos_recurso[i] if i < len(tipos_recurso) else None
                         ))
 
                     db.commit()

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Jurídico - CODEGO</title>
+    <title>Painel CodeGO - Dashboard</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -13,11 +13,11 @@
         :root {
             --sidebar-bg: #ffffff;
             --accent-blue: #002b5c; /* Azul Cobalto */
-            --button-red: #e57373; /* Tom avermelhado jurídico */
-            --button-red-hover: #d32f2f;
+            --button-blue: #7a97bb;
             --text-white: #ffffff;
             --logout-red: #ef4444;
             --logout-red-hover: #dc2626;
+            --admin-amber: #f59e0b; /* Cor para o botão de Logs */
         }
 
         body, html {
@@ -49,9 +49,13 @@
             z-index: 10;
         }
 
+        .logo-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
         .logo-container img {
             width: 200px;
-            margin-bottom: 30px;
         }
 
         .nav-menu {
@@ -62,7 +66,7 @@
         }
 
         .nav-button {
-            background-color: var(--button-red);
+            background-color: var(--button-blue);
             color: white;
             text-decoration: none;
             padding: 14px;
@@ -77,7 +81,7 @@
         }
 
         .nav-button:hover {
-            background-color: var(--button-red-hover);
+            background-color: var(--accent-blue);
             transform: translateX(5px);
         }
 
@@ -86,10 +90,10 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            background-color: #ffffff;
+            background-color: #f3f4f6;
         }
 
-        /* --- TOPBAR INVERTIDA (AZUL COBALTO COM LETRA BRANCA) --- */
+        /* --- TOPBAR --- */
         .topbar {
             background-color: var(--accent-blue);
             color: var(--text-white);
@@ -102,6 +106,12 @@
             z-index: 5;
         }
 
+        .topbar-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
         .welcome-text {
             font-size: 1.6rem;
             font-weight: 700;
@@ -110,16 +120,12 @@
         }
 
         .welcome-text span {
-            font-weight: 300;
-            opacity: 0.8;
-            font-size: 1.6rem;
-            margin-right: 5px;
+            font-weight: 400;
+            opacity: 0.9;
         }
 
-        /* Botão de Logout Sólido */
-        .btn-logout {
-            background-color: var(--logout-red);
-            color: white;
+        /* Estilo comum para botões da Topbar */
+        .btn-topbar {
             text-decoration: none;
             padding: 10px 22px;
             border-radius: 10px;
@@ -131,15 +137,16 @@
             transition: all 0.2s ease;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.1);
+            color: white;
         }
 
-        .btn-logout:hover {
-            background-color: var(--logout-red-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
-        }
+        .btn-logout { background-color: var(--logout-red); }
+        .btn-logout:hover { background-color: var(--logout-red-hover); transform: translateY(-2px); }
 
-        /* CONTAINER DO DASHBOARD */
+        /* Botão de Logs exclusivo Admin */
+        .btn-logs { background-color: var(--admin-amber); color: #1a202c; border: none; }
+        .btn-logs:hover { background-color: #d97706; transform: translateY(-2px); }
+
         .dashboard-container {
             flex-grow: 1;
             width: 100%;
@@ -154,6 +161,7 @@
             object-fit: cover;
             display: block;
         }
+
         .dashboard-container iframe {
             width: 100%;
             height: 100%;
@@ -163,41 +171,69 @@
     </style>
 </head>
 <body>
+
     <div class="wrapper">
         <div class="sidebar">
             <div class="logo-container">
                 <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
             </div>
-            <div class="nav-menu">
-                <a href="{{ url_for('cadastro.cadastro_jur') }}" class="nav-button">Adicionar Processos</a>
-                <a href="{{ url_for('edicao.selecionar_edicao', modo='jur') }}" class="nav-button">Editar Processos</a>
-                <a href="{{ url_for('relatorio.relatorios') }}" class="nav-button">Gerar Relatório</a>
-            </div>
-        </div>
 
+            <div class="nav-menu">
+    <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">Cadastrar Nova Empresa</a>
+    <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">Editar Cadastro</a>
+    <a href="{{ url_for('relatorio.relatorios') }}" class="nav-button">Gerar Relatório</a>
+
+    {% if session.get('role') == 'admin' %}
+    <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: var(--admin-amber); color: #1a202c; margin-top: 10px;">
+        <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
+        Registrar Usuário
+    </a>
+    
+    {% endif %}
+    {% if session.get('role') == 'assent_gestor' %}
+    <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #10b981; margin-top: 10px;">
+        <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
+        Registrar Usuário
+    </a>
+    {% endif %}
+
+    {% if session.get('role') == 'admin' %}
+    {% endif %}
+</div>
+        </div>
+        
         <div class="main-content">
             <div class="topbar">
                 <div class="welcome-text">
-                    <span> Bem-vindo,</span>{{ session['username'] }}
+                    <span>Bem-vindo,</span> {{ session['username'] }}
                 </div>
-                {% if session.get('role') == 'admin' %}
-                    <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="btn-topbar btn-logs">
+                
+                <div class="topbar-actions">
+                    {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="btn-topbar btn-logs">
                         Alternar Menu
                     </a>
-                {% endif %}
-                
-                <a href="{{ url_for('auth_login.logout') }}" class="btn-logout">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                    Sair do Sistema
-                </a>
+                    <a href="{{ url_for('logs.logs') }}" class="btn-topbar btn-logs">
+                        <i data-lucide="database-zap" class="w-4 h-4"></i>
+                        Logs do Sistema
+                    </a>
+                    {% endif %}
+
+                    <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        Sair do Sistema
+                    </a>
+                </div>
             </div>
-            
+
             <div class="dashboard-container">
                 <iframe 
-                    title="Projeto PBI AssentJur" 
-                    src="https://app.powerbi.com/view?r=eyJrIjoiZTEwNjAxMGEtNDI3MC00ZTIyLWE3MTAtYjQ0NzM2ZTIzZDg5IiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9&navContentPaneEnabled=false&filterPaneEnabled=false" 
+                    title="Projeto PBI infra Distrito" 
+                    src="https://app.powerbi.com/view?r=eyJrIjoiYjM2Njg4YzMtZGJjMi00NTM4LTk4NDMtYTJiMTNjOTk3YTY3IiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9&navContentPaneEnabled=false&filterPaneEnabled=false" 
                     allowFullScreen>
                 </iframe>
+
+                <!-- <img src="{{ url_for('static', filename='dashboard_estatico.jpg') }}" class="dashboard-img"> !-->
             </div>
         </div>
     </div>

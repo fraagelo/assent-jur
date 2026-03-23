@@ -113,7 +113,13 @@ Equipe CODEGO
         ROLE_MAP = {
             "Jurídico": "jur",
             "Assentamento": "assent",
-            "admin": "admin"
+            "admin": "admin",
+            "Gestor - Jurídico": "jur_gestor",
+        "Gestor - Assentamento": "assent_gestor",
+          "Administrador": "admin" ,
+          "Usuário - Jurídico": "jur",      
+         "Usuário - Assentamento": "assent", 
+
         }
 
         session['username'] = usuario['login']
@@ -121,6 +127,6 @@ Equipe CODEGO
 
     @staticmethod
     def redirect_por_role(role):
-        if role == 'jur':
+        if role == 'jur' or role == 'jur_gestor':
             return redirect(url_for('dashboard.menu', modo='jur'))
-        return redirect(url_for('dashboard.menu', modo='assent'))
+        return redirect(url_for('dashboard.menu', modo='assent')) 
